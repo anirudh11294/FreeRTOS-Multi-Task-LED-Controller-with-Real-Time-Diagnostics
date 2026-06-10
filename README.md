@@ -14,7 +14,7 @@ A real-time firmware project built on STM32F407 (Cortex-M4) with FreeRTOS, demon
 ┌──────────────────────────────────────────────────────────┐
 │                    FreeRTOS Scheduler                     │
 ├──────────┬──────────┬──────────┬──────────┬──────────────┤
-│Emergency │  Task1   │  Task2   │  Task3   │  Shell Task  │
+│Emergency │  Task1   │  Task2   │  Task3   │  Command Task  │
 │ Prio: 4  │ Prio: 3  │ Prio: 2  │ Prio: 1  │  Prio: 3    │
 │ 250 ms   │ 500 ms   │ 1000 ms  │ 1500 ms  │  Event-driven│
 ├──────────┴──────────┴──────────┴──────────┴──────────────┤
@@ -33,7 +33,7 @@ A real-time firmware project built on STM32F407 (Cortex-M4) with FreeRTOS, demon
 | Task1 | PG10 | 500 ms | 3 | Medium-priority periodic task |
 | Task2 | PG11 | 1000 ms | 2 | Medium-priority periodic task |
 | Task3 | PG12 | 1500 ms | 1 | Low-priority periodic task |
-| Shell | — | Event-driven | 3 | UART command processing |
+| Command | — | Event-driven | 3 | UART command processing |
 
 All periodic tasks use `vTaskDelayUntil()` for accurate, drift-free timing.
 
@@ -88,18 +88,6 @@ The centerpiece of this project. A deliberately constructed scenario that demons
 With the binary semaphore, the highest-priority task in the system was blocked for over a second by medium-priority tasks that weren't even contending for the shared resource. Switching to a FreeRTOS mutex enabled priority inheritance, which temporarily promoted the lock holder to the blocked task's priority, preventing the medium-priority tasks from preempting it.
 
 This is the same class of bug that caused the Mars Pathfinder rover reset in 1997, resolved by enabling priority inheritance in the VxWorks mutex.
-
-## Linux Kernel Parallels
-
-This project intentionally mirrors concepts from the Linux kernel to demonstrate understanding at both the RTOS and OS levels:
-
-| RTOS Concept | Linux Kernel Equivalent |
-|-------------|------------------------|
-| FreeRTOS mutex with priority inheritance | `rt_mutex` with `PI_FLAG` in the RT scheduler |
-| `vTaskGetRunTimeStats` / per-task CPU% | `/proc/<pid>/stat`, `top`, CFS accounting |
-| UART RX ISR → task notification → shell task | Top-half (hardirq) → bottom-half (tasklet/workqueue) |
-| `vTaskDelayUntil` for periodic execution | `hrtimer` or `SCHED_DEADLINE` periodic tasks |
-| FreeRTOS task states (Running/Blocked/Ready) | Linux process states (R/S/D/Z) in `/proc/<pid>/status` |
 
 ## Build and Flash
 
